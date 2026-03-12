@@ -1,0 +1,35 @@
+/* ------------------------------------------------------------------ */
+/*  Add Product Page                                                  */
+/* ------------------------------------------------------------------ */
+.page {
+  padding: var(--space-xl) 0 var(--space-2xl);
+  flex: 1;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  margin-bottom: var(--space-lg);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.page__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.page__subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-xl);
+}
