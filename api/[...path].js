@@ -1,18 +1,17 @@
 /**
- * Vercel Serverless Function – Products API
+ * Vercel Serverless Catch-All – Products API
  *
- * Handles all routes:
- *   GET    /api/products          → list all
- *   POST   /api/products          → create
- *   GET    /api/products/:id      → get one
- *   PUT    /api/products/:id      → replace one
- *   DELETE /api/products/:id      → remove one
+ * Single function handles ALL /api/* routes so module-level state
+ * (products array) is shared across every request within a warm instance.
  *
- * State is kept in module-level variables so it persists across
- * requests within the same warm function instance (ideal for demos).
+ *   GET    /api/products        → list all
+ *   POST   /api/products        → create
+ *   GET    /api/products/:id    → get one
+ *   PUT    /api/products/:id    → replace one
+ *   DELETE /api/products/:id    → remove one
  */
 
-const SEED_PRODUCTS = [
+const SEED = [
   {
     id: 1,
     name: 'Wireless Headphones',
@@ -75,23 +74,27 @@ const SEED_PRODUCTS = [
   },
 ];
 
-// Module-level store – initialised once per warm function instance
-let products = JSON.parse(JSON.stringify(SEED_PRODUCTS));
+// Module-level store – shared across all requests to this warm instance
+let products = JSON.parse(JSON.stringify(SEED));
 let nextId = 7;
 
 export default function handler(req, res) {
-  // CORS – allow requests from any origin (needed for Vercel preview URLs)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // req.query.path is the array of segments after /api/
+  // e.g. /api/products     → ['products']
+  //      /api/products/3   → ['products', '3']
+  const segments = Array.isArray(req.query.path) ? req.query.path : [req.query.path].filter(Boolean);
+
+  if (segments[0] !== 'products') {
+    return res.status(404).json({ message: 'Not found' });
   }
 
-  // Extract the optional :id segment from [[...params]]
-  const paramSegments = req.query.params ?? [];
-  const id = paramSegments.length > 0 ? Number(paramSegments[0]) : null;
+  const id = segments[1] ? Number(segments[1]) : null;
 
   // GET /api/products
   if (req.method === 'GET' && id === null) {
@@ -111,9 +114,9 @@ export default function handler(req, res) {
     if (!body || !body.name) {
       return res.status(400).json({ message: 'name is required' });
     }
-    const newProduct = { ...body, id: nextId++ };
-    products.push(newProduct);
-    return res.status(201).json(newProduct);
+    const created = { ...body, id: nextId++ };
+    products.push(created);
+    return res.status(201).json(created);
   }
 
   // PUT /api/products/:id
