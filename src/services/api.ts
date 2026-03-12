@@ -1,6 +1,9 @@
 import type { Product, NewProduct } from '../types/Product';
 
-const BASE_URL = '/api/products';
+// In production (Vercel) → my-json-server reads db.json from the GitHub repo.
+// In development        → Vite proxy forwards /api/* to local json-server.
+const BASE_URL =
+  (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api/products';
 
 /**
  * Generic request helper with error handling.
